@@ -1,0 +1,10 @@
+#if true && (CODELANG == python)
+1. Should be Python.
+#elif false && (CODELANG == java)
+1. Should be Java.
+#else
+1. Should be neither Python nor Java.
+#endif
+#if foo == bar
+2. Foo is as Bar
+#endif

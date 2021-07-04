@@ -1,0 +1,7 @@
+#if CODELANG == python
+Should be Python.
+#elif CODELANG == java
+Should be Java.
+#else
+Should be neither Python nor Java.
+#endif

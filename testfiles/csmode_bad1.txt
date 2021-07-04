@@ -1,0 +1,26 @@
+#pragma // We ignore this.
+#prag //But we pass this through.
+#lines //What about this?
+
+#define 中文 // How cool is this?
+
+#if !中文
+This content should not appear.
+
+#else
+#
+
+  你好！
+  
+
+  Но я не китаец!!!
+
+But ###this!
+
+#oops #undef oops
+
+#endif
+This line should appear.
+# The following should cause a parse error!
+#define _CODELANG = python
+

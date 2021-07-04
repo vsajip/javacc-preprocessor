@@ -1,0 +1,16 @@
+#prag //But we pass this through.
+
+
+#
+
+  你好！
+  
+
+  Но я не китаец!!!
+
+But ###this!
+
+#oops #undef oops
+
+This line should appear.
+# The following should cause a parse error!

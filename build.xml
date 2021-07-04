@@ -1,0 +1,25 @@
+<project name="Preprocessor" default="compile" basedir=".">
+  <uptodate property="ppparser.uptodate" srcfile="Preprocessor.javacc" targetfile="org/parsers/preprocessor/PreprocessorParser.java" />
+  <target name="clean">
+    <delete>
+      <fileset dir="${basedir}" includes="*.class" />
+    </delete>
+    <delete dir="${basedir}/org" />
+  </target>
+  <target name="parser-gen" unless="ppparser.uptodate">
+    <exec executable="javacc" dir="${basedir}" failonerror="true" >
+      <arg line="Preprocessor.javacc"/>
+    </exec>
+  </target>
+  <target name="compile" depends="parser-gen">
+    <javac classpath="." srcdir="." includeantruntime="off" failonerror="true" debug="on" target="1.8" source="1.8" fork="true" />
+    <echo>
+      Test using Jython: use the test target.
+    </echo>
+  </target>
+  <target name="test" depends="compile">
+    <exec executable="jython" dir="${basedir}" failonerror="true">
+      <arg line="-u tests.py"/>
+    </exec>
+  </target>
+</project>
