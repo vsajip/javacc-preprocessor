@@ -33,8 +33,8 @@ PARSER_PACKAGE="org.parsers.preprocessor";
 
 INJECT PARSER_CLASS : 
 {
-    private BitSet lineMarkers = new BitSet();
-    private Map<String, String> definedSymbols = new HashMap<>();
+    private final BitSet lineMarkers = new BitSet();
+    private final Map<String, String> definedSymbols = new HashMap<>();
     private boolean currentlyOn = true;
     private boolean csharpMode = false;
 
@@ -66,7 +66,7 @@ INJECT PARSER_CLASS :
         definedSymbols.putAll(symbols);
     }
     
-    private class Expression {
+    private static class Expression {
         boolean booleanValue;
         String symbol;
     }
@@ -145,26 +145,26 @@ INCLUDE NON_EXISTENT ! JAVA_IDENTIFIER_DEF
 
 <PP_DIRECTIVE> SKIP : " " | "\t" | "\f" ;
 
-BitSet PP_Root#void : PP_Block <EOF> {return lineMarkers;};
+BitSet PP_Root#void : PP_Block <EOF> { return lineMarkers; };
 
 PP_Block#void : (PP_IfBlock | PP_DefStatement | PP_UndefStatement | PP_Content)* ;
 
-PP_Content#void : ((<PP_LINE>|<PP_FALSE_ALERT>) {setLineMarker();})+ ;
+PP_Content#void : ((<PP_LINE>|<PP_FALSE_ALERT>) { setLineMarker(); })+ ;
 
 PP_IfBlock#void : 
    { 
-      boolean alreadyHandled=false;
+      boolean alreadyHandled = false;
       Expression result;
       final boolean previouslyOn = currentlyOn;
    }
     <PP_IF> 
-    result=PP_Expression {
+    result = PP_Expression {
         if (result.booleanValue) alreadyHandled = true;
         currentlyOn = result.booleanValue && previouslyOn;
     }
-    PP_Block {if (alreadyHandled) currentlyOn = false;} 
+    PP_Block { if (alreadyHandled) currentlyOn = false; }
     (
-        <PP_ELIF> result=PP_Expression 
+        <PP_ELIF> result = PP_Expression
         {
             if (!alreadyHandled) {
                 alreadyHandled = result.booleanValue;
@@ -174,11 +174,11 @@ PP_IfBlock#void :
         PP_Block
     )* 
     [
-        <PP_ELSE> {currentlyOn = !alreadyHandled && previouslyOn;}
+        <PP_ELSE> { currentlyOn = !alreadyHandled && previouslyOn; }
         PP_Block
     ]
     <PP_ENDIF>
-    {this.currentlyOn = previouslyOn;}
+    { this.currentlyOn = previouslyOn; }
 ;
 
 PP_DefStatement#void :
@@ -192,7 +192,7 @@ PP_DefStatement#void :
       if (csharpMode) {
         throw new ParseException("Symbols cannot have defined values in C# mode.");
       }
-      value=lastConsumedToken.getImage();
+      value = lastConsumedToken.getImage();
     }
   ]
   {
@@ -204,7 +204,7 @@ PP_DefStatement#void :
 
 PP_UndefStatement#void : 
     <PP_UNDEF> <PP_SYMBOL> 
-    {if (currentlyOn) definedSymbols.remove(lastConsumedToken.getImage());}
+    { if (currentlyOn) definedSymbols.remove(lastConsumedToken.getImage()); }
 ;    
 
 Expression PP_Expression#void :
@@ -212,10 +212,10 @@ Expression PP_Expression#void :
     Expression result, result2;
     boolean inequality = false;
   }
-  result=PP_OrExpression
+  result = PP_OrExpression
   [
-    (<PP_EQUALS>|<PP_NOT_EQUALS>{inequality=true;}) 
-    result2=PP_OrExpression 
+    (<PP_EQUALS>|<PP_NOT_EQUALS>{ inequality = true; })
+    result2 = PP_OrExpression
     {
       if (csharpMode || result.symbol == null || result2.symbol == null) {
         result.booleanValue = inequality == (result.booleanValue != result2.booleanValue);
@@ -246,21 +246,21 @@ Expression PP_Expression#void :
       }
     }
   ]
-  {return result;}
+  { return result; }
 ;
 
 Expression PP_OrExpression#void :
-  {Expression result, result2;}
-  result=PP_AndExpression 
-  (<PP_OR> result2=PP_AndExpression {result.booleanValue = result.booleanValue || result2.booleanValue;})*
-  {return result;}
+  { Expression result, result2; }
+  result = PP_AndExpression
+  (<PP_OR> result2 = PP_AndExpression { result.booleanValue = result.booleanValue || result2.booleanValue; })*
+  { return result; }
 ;
 
 Expression PP_AndExpression#void : 
-  {Expression result, result2;}
-  result=PP_NotExpression 
-  (<PP_AND> result2=PP_NotExpression { result.booleanValue = result.booleanValue && result2.booleanValue;})*
-  {return result;}
+  { Expression result, result2; }
+  result = PP_NotExpression
+  (<PP_AND> result2 = PP_NotExpression { result.booleanValue = result.booleanValue && result2.booleanValue; })*
+  { return result; }
 ;   
 
 Expression PP_NotExpression#void : 
@@ -268,8 +268,8 @@ Expression PP_NotExpression#void :
     boolean not = false;
     Expression result;
   }
-  (<PP_NOT> {not = !not;})* 
-  result=PP_PrimaryExpression 
+  (<PP_NOT> { not = !not; })*
+  result = PP_PrimaryExpression
   {
      if (not) {
        result.booleanValue = !result.booleanValue;
@@ -279,17 +279,17 @@ Expression PP_NotExpression#void :
 ;
 
 Expression PP_Parentheses#void : 
-   {Expression result;}
+   { Expression result; }
    <PP_LPAREN> 
-   result=PP_Expression 
+   result = PP_Expression
    <PP_RPAREN> 
-   {return result;}
+   { return result; }
 ;
 
 Expression PP_PrimaryExpression#void : 
-    {Expression result = new Expression(); }
+    { Expression result = new Expression(); }
     (
-      result=PP_Parentheses
+      result = PP_Parentheses
       |
       <PP_SYMBOL> 
       {
@@ -297,9 +297,9 @@ Expression PP_PrimaryExpression#void :
         result.booleanValue = definedSymbols.containsKey(result.symbol);
       }
       |
-      <PP_TRUE> {result.booleanValue = true;}
+      <PP_TRUE> { result.booleanValue = true; }
       |
-      <PP_FALSE> {result.booleanValue = false;}
+      <PP_FALSE> { result.booleanValue = false; }
     )
-    {return result;}
+    { return result; }
 ;
