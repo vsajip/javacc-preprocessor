@@ -218,23 +218,30 @@ Expression PP_Expression#void :
     result2=PP_OrExpression 
     {
       if (csharpMode || result.symbol == null || result2.symbol == null) {
-        result.booleanValue = inequality ? result.booleanValue != result2.booleanValue
-                                         : result.booleanValue == result2.booleanValue;
+        result.booleanValue = inequality == (result.booleanValue != result2.booleanValue);
       }
       else {
         // Not C# mode, and LHS and RHS are symbols
         String key = result.symbol;
         String value = result2.symbol;
 
-        result.symbol = null;
+        result.symbol = null;   // don't propagate further
         result2.symbol = null;
         if (!definedSymbols.containsKey(key)) {
-          result.booleanValue = false;
+          if (!definedSymbols.containsKey(value)) {
+            // neither LHS nor RHS appears to be defined, so both are
+            // logically false, so ...
+            result.booleanValue = !inequality;
+          }
+          else {
+            // LHS isn't defined, so logically false. RHS is defined,
+            // but its value might be "0" because it was undef'ed.
+            result.booleanValue = inequality != definedSymbols.get(value).equals("0");
+          }
         }
         else {
           String keyValue = definedSymbols.get(key);
-          result.booleanValue = inequality ? !value.equals(keyValue)
-                                           : value.equals(keyValue);
+          result.booleanValue = inequality != value.equals(keyValue);
         }
       }
     }

@@ -65,13 +65,13 @@ class BaseTest(unittest.TestCase):
     def test_combined(self):
         d = {'CODELANG': 'python'}
         actual = self.do_test('combined.txt', d, False, check_expected=False)
-        self.assertEqual(actual, '1. Should be Python.')
+        self.assertEqual(actual, '1. Should be Python.\n2. Foo is as Bar')
         d = {'CODELANG': 'java'}
         actual = self.do_test('combined.txt', d, False, check_expected=False)
-        self.assertEqual(actual, '1. Should be neither Python nor Java.')
+        self.assertEqual(actual, '1. Should be neither Python nor Java.\n2. Foo is as Bar')
         d = {'CODELANG': 'csharp'}
         actual = self.do_test('combined.txt', d, False, check_expected=False)
-        self.assertEqual(actual, '1. Should be neither Python nor Java.')
+        self.assertEqual(actual, '1. Should be neither Python nor Java.\n2. Foo is as Bar')
 
 
 def main():
