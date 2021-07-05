@@ -1,7 +1,7 @@
 /*
  * Authors: Jonathan Revusky revusky@javacc.com
  *          Vinay Sajip - adapt to allow string values for symbols
- * This partial implementation of the C# Preprocessor 
+ * This partial implementation of the C# Preprocessor
  * is free to use or adapt.
  */
 
@@ -14,24 +14,24 @@ PARSER_PACKAGE="org.parsers.preprocessor";
 /*
  * This is an implementation of the standard C# preprocessor.
  * Well, it is incomplete at the moment, because it just ignores
- * everything except #define/#undef and #if/#elif/#else. 
- * The other C# pre-processing directives, #pragma, #region/#endregion, 
+ * everything except #define/#undef and #if/#elif/#else.
+ * The other C# pre-processing directives, #pragma, #region/#endregion,
  * #warning/#error and #line are just treated as lines to ignore.
- * So the only thing currently supported is turning on or off 
+ * So the only thing currently supported is turning on or off
  * parts of the source file.
  * This is very bare-bones and bloody-minded. It does not build a
  * tree or any of that. It just uses code actions to create a BitSet
  * that holds whether a line is "turned on" or not. The line offsets
  * are 1-based.
  *
- * All the naming in this file is prefixed with PP_, sort of using the 
+ * All the naming in this file is prefixed with PP_, sort of using the
  * poor man's namespace functionality. This is because I anticipate
  * this getting INCLUDEd and I don't want to stomp on other people's
- * names. It is not terribly optimal and really quite ugly. Something 
+ * names. It is not terribly optimal and really quite ugly. Something
  * should eventually be done about this.
  */
 
-INJECT PARSER_CLASS : 
+INJECT PARSER_CLASS :
 {
     private final BitSet lineMarkers = new BitSet();
     private final Map<String, String> definedSymbols = new HashMap<>();
@@ -65,27 +65,27 @@ INJECT PARSER_CLASS :
     public void addSymbols(Map<String, String> symbols) {
         definedSymbols.putAll(symbols);
     }
-    
+
     private static class Expression {
         boolean booleanValue;
         String symbol;
     }
 }
 
-TOKEN : 
+TOKEN :
  <#PP_WS : [" ", "\t", "\f"] >
  |
  <#PP_EOL : "\n" | "\r" | "\r\n" >
  |
  <PP_LINE : (<PP_WS>)* ((~["#", " ", "\t", "\f", "\n", "\r"]) (~["\n", "\r"])*)? <PP_EOL>>
  |
- <PP_DEFINE : <PP_START> "define" (<PP_WS>)*> : PP_DIRECTIVE 
+ <PP_DEFINE : <PP_START> "define" (<PP_WS>)*> : PP_DIRECTIVE
  |
- <PP_UNDEF : <PP_START> "undef" (<PP_WS>)*> : PP_DIRECTIVE 
+ <PP_UNDEF : <PP_START> "undef" (<PP_WS>)*> : PP_DIRECTIVE
  |
- <PP_IF : <PP_START> "if" (<PP_WS>)*> : PP_DIRECTIVE 
+ <PP_IF : <PP_START> "if" (<PP_WS>)*> : PP_DIRECTIVE
  |
- <PP_ELIF : <PP_START> "elif" (<PP_WS>)*> : PP_DIRECTIVE 
+ <PP_ELIF : <PP_START> "elif" (<PP_WS>)*> : PP_DIRECTIVE
  |
  <PP_ELSE : <PP_START> "else"> : PP_DIRECTIVE
  |
@@ -93,14 +93,14 @@ TOKEN :
 ;
 
 UNPARSED :
- <PP_IGNORED_DIRECTIVE : 
-     <PP_START> 
-// Just ignore all these for now.     
-     ("pragma" | "line" | "warning" | "error" | "region" | "endregion" | "nullable") 
-     (~["\n", "\r"])* 
+ <PP_IGNORED_DIRECTIVE :
+     <PP_START>
+// Just ignore all these for now.
+     ("pragma" | "line" | "warning" | "error" | "region" | "endregion" | "nullable")
+     (~["\n", "\r"])*
      <PP_EOL>>
 ;
- 
+
 
 MORE :
 //Anything else that looks like it starts a directive,
@@ -110,12 +110,12 @@ MORE :
 ;
 
 <PP_EAT_TO_EOL> TOKEN :
-  <PP_FALSE_ALERT : ((~["\n", "\r"])*)? <PP_EOL>> : PP_SCAN_LINES 
+  <PP_FALSE_ALERT : ((~["\n", "\r"])*)? <PP_EOL>> : PP_SCAN_LINES
 ;
 
 INCLUDE NON_EXISTENT ! JAVA_IDENTIFIER_DEF
 
-<PP_DIRECTIVE> TOKEN : 
+<PP_DIRECTIVE> TOKEN :
     <PP_TRUE : "true">
     |
     <PP_FALSE : "false">
@@ -139,7 +139,7 @@ INCLUDE NON_EXISTENT ! JAVA_IDENTIFIER_DEF
     <PP_NOT : "!">
 ;
 
-<PP_DIRECTIVE> UNPARSED : 
+<PP_DIRECTIVE> UNPARSED :
     <PP_EOL_COMMENT : ("//" (~["\n", "\r"])*)? <PP_EOL>> : PP_SCAN_LINES
 ;
 
@@ -151,13 +151,13 @@ PP_Block#void : (PP_IfBlock | PP_DefStatement | PP_UndefStatement | PP_Content)*
 
 PP_Content#void : ((<PP_LINE>|<PP_FALSE_ALERT>) { setLineMarker(); })+ ;
 
-PP_IfBlock#void : 
-   { 
+PP_IfBlock#void :
+   {
       boolean alreadyHandled = false;
       Expression result;
       final boolean previouslyOn = currentlyOn;
    }
-    <PP_IF> 
+    <PP_IF>
     result = PP_Expression {
         if (result.booleanValue) alreadyHandled = true;
         currentlyOn = result.booleanValue && previouslyOn;
@@ -172,7 +172,7 @@ PP_IfBlock#void :
             }
         }
         PP_Block
-    )* 
+    )*
     [
         <PP_ELSE> { currentlyOn = !alreadyHandled && previouslyOn; }
         PP_Block
@@ -202,10 +202,10 @@ PP_DefStatement#void :
   }
 ;
 
-PP_UndefStatement#void : 
-    <PP_UNDEF> <PP_SYMBOL> 
+PP_UndefStatement#void :
+    <PP_UNDEF> <PP_SYMBOL>
     { if (currentlyOn) definedSymbols.remove(lastConsumedToken.getImage()); }
-;    
+;
 
 Expression PP_Expression#void :
   {
@@ -256,14 +256,14 @@ Expression PP_OrExpression#void :
   { return result; }
 ;
 
-Expression PP_AndExpression#void : 
+Expression PP_AndExpression#void :
   { Expression result, result2; }
   result = PP_NotExpression
   (<PP_AND> result2 = PP_NotExpression { result.booleanValue = result.booleanValue && result2.booleanValue; })*
   { return result; }
-;   
+;
 
-Expression PP_NotExpression#void : 
+Expression PP_NotExpression#void :
   {
     boolean not = false;
     Expression result;
@@ -278,20 +278,20 @@ Expression PP_NotExpression#void :
   }
 ;
 
-Expression PP_Parentheses#void : 
+Expression PP_Parentheses#void :
    { Expression result; }
-   <PP_LPAREN> 
+   <PP_LPAREN>
    result = PP_Expression
-   <PP_RPAREN> 
+   <PP_RPAREN>
    { return result; }
 ;
 
-Expression PP_PrimaryExpression#void : 
+Expression PP_PrimaryExpression#void :
     { Expression result = new Expression(); }
     (
       result = PP_Parentheses
       |
-      <PP_SYMBOL> 
+      <PP_SYMBOL>
       {
         result.symbol = lastConsumedToken.getImage();
         result.booleanValue = definedSymbols.containsKey(result.symbol);
