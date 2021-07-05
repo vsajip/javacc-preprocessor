@@ -1,4 +1,4 @@
-This preprocessor is based on [JavaCC's 
+This preprocessor is based on [JavaCC21's
 preprocessor](https://github.com/javacc21/javacc21/tree/master/examples/preprocessor). 
 Whereas that is based on strict adherence to C#'s preprocessor (symbols 
 are Boolean values only), this version expands the functionality so 
@@ -10,7 +10,7 @@ python` in preprocessed files. This is to potentially facilitate
 support for multiple code generation languages in JavaCC source files:
 
 ```
-# if CODELANG == python
+#if CODELANG == python
 Some Python code here
 #elif CODELANG == csharp
 Some C# code here
@@ -30,6 +30,6 @@ use the standalone Jython jar and a simple shell script:
 java -jar $HOME/.local/bin/jython.jar $*
 ```
 
-Jython is used  as it's quicker (for me - YMMV) to write tests than in 
-Java.
+Jython is used  as it's quicker (for me - YMMV) to write tests in than
+Java would be.
 
